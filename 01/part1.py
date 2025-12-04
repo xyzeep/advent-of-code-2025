@@ -1,8 +1,6 @@
 lines = []
 
 with open("input.txt", "r") as file:
-    zero_count = 0
-    state = 50
 
     for line in file:
         line = line.strip()
