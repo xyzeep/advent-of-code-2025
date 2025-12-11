@@ -1,83 +1,103 @@
+
+# PLEASE DO NOT FOLLOW THIS SOLUTION; THIS SOLUTION IS INCOMPLETE
+
+from collections import deque
+
 red_tiles = []
-green_tiles = []
+green_tiles = set()
 
-with open("small.txt", "r") as file:
+with open("input.txt", "r") as file:
     for line in file:
-        red_tiles.append(line.strip().split(','))
+        x, y = line.strip().split(',')
+        red_tiles.append((int(x), int(y)))
 
+largest = 0
 n = len(red_tiles)
 
-print(red_tiles)
-
+print("stuck here 1")
 for i in range(n):
     tile1 = red_tiles[i]
+    tile2 = red_tiles[(i + 1) % n]  
 
+    if tile1[0] == tile2[0]:  
+        col = tile1[0]
+        for row in range(min(tile1[1], tile2[1]) + 1, max(tile1[1], tile2[1])):
+            green_tiles.add((col, row))
+    elif tile1[1] == tile2[1]:  
+        row = tile1[1]
+        for col in range(min(tile1[0], tile2[0]) + 1, max(tile1[0], tile2[0])):
+            green_tiles.add((col, row))
+
+# filling the green tiles
+wall = set(red_tiles) | green_tiles
+
+xs = [x for x, _ in wall]
+ys = [y for _, y in wall]
+
+min_x, max_x = min(xs) - 2, max(xs) + 2
+min_y, max_y = min(ys) - 2, max(ys) + 2
+
+
+start = (min(xs) -1 , min(ys) - 1) 
+outside = set([start])
+queue = deque([start])
+
+directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+
+print("stuck here 2")
+hope = 0
+while queue:
+    print(hope)
+    hope += 1
+    x, y = queue.popleft()
+    for dx, dy in directions:
+        nx, ny = x + dx , y + dy
+
+        if nx < min_x or nx > max_x or ny < min_y or ny > max_y:
+            continue
+
+        if (nx, ny) in wall:
+            continue
+
+        if (nx, ny) not in outside:
+            outside.add((nx, ny))
+            queue.append((nx, ny))
+
+largest = 0
+for i in range(n):
+    tile1 = red_tiles[i]
+    col1 = int(tile1[0])
+    row1 = int(tile1[1])
     for j in range(i, n):
         tile2 = red_tiles[j]
+        col2 = int(tile2[0])
+        row2 = int(tile2[1])
 
-        col_match = row_match = None
+        col_step = 1
+        row_step = 1
 
-        if tile1[0] == red_tiles[j][0]: col_match = red_tiles[i][0]
-        if tile1[1] == red_tiles[j][1]: row_match = red_tiles[i][1]
-        
-        if col_match is not None:
-           for k in range(int(tile1[1]), int(tile2[1]) + 1):
-                green_tiles.append([col_match, k])
-        
-        elif row_match is not None:
-            for k in range(int(tile1[0]), int(tile2[0]) + 1):
-                green_tiles.append([k, row_match])
+        if col1 > col2: col_step = -1
+        if row1 > row2: row_step = -1
 
-for i in range(n):
-    x1, y1 = map(int, red_tiles[i])
-    x2, y2 = map(int, red_tiles[(i + 1) % n]) 
-
-    # vertical segment
-    if x1 == x2:
-        start = min(y1, y2)
-        end   = max(y1, y2)
-        for y in range(start, end + 1):
-            green_tiles.append((x1, y))
-
-    elif y1 == y2:
-        start = min(x1, x2)
-        end   = max(x1, x2)
-        for x in range(start, end + 1):
-            green_tiles.append((x, y1))
-
-
-
-largest_area = 0
-
-red_set = set((int(x), int(y)) for x, y in red_tiles)
-green_set = set((x, y) for x, y in green_tiles)
-
-for i in range(n):
-    x1, y1 = map(int, red_tiles[i])
-
-    for j in range(i + 1, n):
-        x2, y2 = map(int, red_tiles[j])
-
-        left   = min(x1, x2)
-        right  = max(x1, x2)
-        bottom = min(y1, y2)
-        top    = max(y1, y2)
-
+        left = min(col1, col2)
+        right = max(col1, col2)
+        top = min(row1, row2)
+        bottom = max(row1, row2)       
+    
         valid = True
-        for x in range(left, right + 1):
-            for y in range(bottom, top + 1):
-                if (x, y) not in red_set and (x, y) not in green_set:
+        for col in range(left, right+1):
+            for row in range(top, bottom+1):
+                if (col, row) in outside:
                     valid = False
                     break
             if not valid:
                 break
 
-        if not valid:
-            continue
+    if valid:
+        col_diff = abs(int(red_tiles[i][0]) - int(red_tiles[j][0])) + 1
+        row_diff = abs(int(red_tiles[i][1]) - int(red_tiles[j][1])) + 1
+    
+        area = col_diff * row_diff
+        if area > largest: largest = area
 
-        area = (right - left + 1) * (top - bottom + 1)
-
-        if area > largest_area:
-            largest_area = area
-
-print(largest_area)
+print(largest)
