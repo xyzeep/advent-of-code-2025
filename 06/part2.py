@@ -1,36 +1,32 @@
 from math import prod
-import re
 
 lines = []
 with open("input.txt") as file:
-    for idx, line in enumerate(file):
-        line = line.rstrip('\n')
-        if idx == 4:  # last row with operators
-            # only '*' and '+'
-            symbols = [c for c in line if c in '*+']
-            lines.append(symbols)
-        else:
-            numbers = re.findall(r'\s*\d+', line)
-            lines.append(numbers)
-
-print(lines)
+    for line in file:
+        lines.append(line.rstrip("\n"))
+operations = lines.pop().replace(" ", "")
 
 answers = []
+sym_idx = -1
+columns = []
+for col in reversed(range(len(lines[0]))):
+    column = []
+    for row in range(len(lines)):
+        column.append(lines[row][col])
+    if column.count(" ") == len(lines):
+        if operations[sym_idx] == "*":
+            answers.append(prod(columns))
+        elif operations[sym_idx] == "+":
+            answers.append(sum(columns))
+        sym_idx -= 1
+        columns = []
+        continue
+    digits = [c for c in column if c != " "]
+    number = int("".join(digits))
+    columns.append(number)
+if operations[sym_idx] == "*":
+    answers.append(prod(columns))
+elif operations[sym_idx] == "+":
+    answers.append(sum(columns))
 
-for i in reversed(range(len(lines[0]))):
-    for j in range(len(lines[0][i])):
-        sym = lines[-1][i]
-
-        column = [lines[row][i] for row in range(len(lines)-1)]
-        digits = [''.join(c for c in s if c.isdigit()) for s in column]
-        numbers = [int(d) for d in digits]
-
-        if sym == '*':
-            answer = prod(numbers)
-        if sym == '+':
-            answer = sum(numbers)
-
-    answers.append(answer)
-
-print("Part 2 solution:", sum(answers))
-
+print(sum(answers))
